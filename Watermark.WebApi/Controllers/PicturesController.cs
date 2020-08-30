@@ -29,7 +29,7 @@ namespace Watermark.WebApi.Controllers
                     throw new ArgumentNullException("Connection bilgisi belirtilmemiş");
                 else
                 {
-                   await _hubContext.Clients.Client(connectionId).SendAsync("NotifyCompleteWatermarkProcess");
+                   await _hubContext.Clients.Client(connectionId).SendAsync("CompletedNotification");
                     return Ok();
                 }
             }

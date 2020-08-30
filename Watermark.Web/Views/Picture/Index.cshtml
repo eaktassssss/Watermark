@@ -37,20 +37,13 @@
     <script type="text/javascript">
         $(document).ready(function () {
             var connection = new signalR.HubConnectionBuilder().withUrl("/NotificationHub").build();
-            connection.on("NotifyCompleteWatermarkProcess", function () {
-               $("#status").html(`Resimlerinize yazı ekleme işlemi bitmiştir.<a  href="/picture/WatermarkPictureList">işlenmiş resimlerinizi görmek için tıklayınız</a>`);
-
-                })
+            connection.start();
+            connection.on("CompletedNotification", () => {
+                $("#status").html('Resimlerinize yazı ekleme işlemi bitmiştir.<a  href="/picture/WatermarkPictureList">işlenmiş resimlerinizi görmek için tıklayınız</a>');
+            });
             var pictures = new Array();
-
             var UserId = "@ViewBag.UserId";
             var City = "@ViewBag.City";
-
-            $("#AddWatermark").click(() => {
-
-                let pictureWatermarkQueue = {
-            });
-            connection.start().catch(err => console.error(err.toString()));
              var pictures = new Array();
              $("#images img").click(function () {
                 $(this).css("border", "3px solid red");
