@@ -8,6 +8,14 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Watermark.AzureStorage.BlobStorage.Repository.Abstract;
+using Watermark.AzureStorage.BlobStorage.Repository.Concrete;
+using Watermark.AzureStorage.ClientConnetion;
+using Watermark.AzureStorage.QueueStorage.Abstract;
+using Watermark.AzureStorage.QueueStorage.Concrete;
+using Watermark.AzureStorage.TableStorage.Repository.Abstract;
+using Watermark.AzureStorage.TableStorage.Repository.Concrete;
+using Watermark.Common.Hubs;
 
 namespace Watermark.Web
 {
@@ -19,14 +27,17 @@ namespace Watermark.Web
         }
 
         public IConfiguration Configuration { get; }
-
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
-        }
+            StorageConnection.ConnectionString = Configuration.GetSection("AzureStorageConnection")["ASConnectionStringName"];
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+            services.AddScoped(typeof(ITableStorageRepository<>), typeof(TableStorageBaseRepository<>));
+            services.AddScoped<IBlobStorageRepository, BlobStorageBaseRepository>();
+            services.AddScoped<IQueueStorageService, QueueStorageService>();
+           
+            services.AddSignalR();
+        }
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -36,7 +47,6 @@ namespace Watermark.Web
             else
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
             app.UseHttpsRedirection();
@@ -48,9 +58,10 @@ namespace Watermark.Web
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapHub<NotificationHub>("/NotificationHub");
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                    pattern: "{controller=Picture}/{action=Index}/{id?}");
             });
         }
     }

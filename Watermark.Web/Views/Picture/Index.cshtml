@@ -1,0 +1,89 @@
+﻿@using Watermark.Dto
+@model List<FileBlobDto>
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <form class="form-inline" asp-action="Index" asp-controller="Picture" method="post" enctype="multipart/form-data">
+            <input type="file" multiple name="contents" value="" />
+            <button type="submit" class="btn btn-success">Resim Yükle</button>
+        </form>
+    </div>
+</div>
+<hr />
+<br />
+<br />
+<h2 id="status"></h2>
+<form class="form-inline">
+    <input type="text" name="watermarkText" id="watermarkText" value="" />
+    <button class="btn btn-primary" type="button" id="btnSend">Ekle</button>
+</form>
+<hr />
+<br />
+<br />
+<h1>Dökümanlar</h1>
+<div id="images">
+    @foreach (var item in Model)
+    {
+        <img data-name="@item.Name" src="@item.Url" class="rounded" height="200" width="200" alt="Cinque Terre">
+    }
+</div>
+
+
+@section Scripts{
+    <script src="~/lib/signalr/signalr.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var connection = new signalR.HubConnectionBuilder().withUrl("/NotificationHub").build();
+            connection.on("NotifyCompleteWatermarkProcess", function () {
+               $("#status").html(`Resimlerinize yazı ekleme işlemi bitmiştir.<a  href="/picture/WatermarkPictureList">işlenmiş resimlerinizi görmek için tıklayınız</a>`);
+
+                })
+            var pictures = new Array();
+
+            var UserId = "@ViewBag.UserId";
+            var City = "@ViewBag.City";
+
+            $("#AddWatermark").click(() => {
+
+                let pictureWatermarkQueue = {
+            });
+            connection.start().catch(err => console.error(err.toString()));
+             var pictures = new Array();
+             $("#images img").click(function () {
+                $(this).css("border", "3px solid red");
+                pictures.push($(this).attr("data-name"));
+            });
+            $("#btnSend").click(function () {
+                var UserId=@ViewBag.UserId;
+                var City ='@ViewBag.City';
+                var model = {
+                    UserId: UserId,
+                    City: City,
+                    ConnectionId: connection.connectionId,
+                    Pictures: pictures,
+                    Text:$("#watermarkText").val(),
+                };
+                $.ajax({
+                    type: "POST",
+                    url: "/Picture/AddWatermark",
+                    data: model,
+                    dataType: "json",
+                    success: function (response) {
+
+                        if (response.success == true) {
+                            $("#status").text(response.message);
+                        }
+                        else {
+                           alert(response.message);
+                        }
+                    }
+                });
+
+            });
+
+        });
+    </script>
+}
